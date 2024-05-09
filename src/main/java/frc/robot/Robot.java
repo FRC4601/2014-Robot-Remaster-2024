@@ -6,6 +6,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
@@ -14,6 +15,8 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -26,6 +29,10 @@ public class Robot extends TimedRobot {
    * This function is run when the robot is first started up and should be used for any
    * initialization code.
    */
+
+  private static final String NoAutoSelected = "No Auto Selected";
+  private String m_autoSelected;
+  private final SendableChooser<String> m_chooser = new SendableChooser<>();
 
    //Motors
    private final PWMVictorSPX frontleftMotor = new PWMVictorSPX(1);
@@ -53,9 +60,13 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
+    m_chooser.setDefaultOption(NoAutoSelected, NoAutoSelected);
+    SmartDashboard.putData("Auto Chooser", m_chooser);
+    //Camera
+    CameraServer.startAutomaticCapture();
 
+    //Drive
     frontleftMotor.setInverted(true);
-    backleftMotor.setInverted(true);
     frontleftMotor.addFollower(backleftMotor);
     frontrightMotor.addFollower(backrightMotor);
     m_drive = new DifferentialDrive(frontleftMotor, frontrightMotor);
@@ -66,14 +77,21 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {}
 
   @Override
-  public void autonomousInit() {}
+  public void autonomousInit() {
+    m_autoSelected = m_chooser.getSelected();
+    System.out.println("Auto selected: " + m_autoSelected);
+
+    autoTimer.reset();
+    autoTimer.start();
+  }
 
   @Override
   public void autonomousPeriodic() {}
 
   @Override
   public void teleopInit() {
-
+    autoTimer.stop();
+    autoTimer.reset();
   }
 
   @Override
@@ -83,43 +101,43 @@ public class Robot extends TimedRobot {
     m_drive.tankDrive(leftstick.getY(), rightstick.getY());
 
   // Spin Motors Control
-    if(xbox.getRawAxis(3) >=0.01 || xbox.getRawAxis(3) <=-0.01) { //Intake Arm Move
-      spinMotor.set(xbox.getRawAxis(3)*.5);
+    if(xbox.getLeftY() >=0.5 || xbox.getLeftY() <=-0.5) { //Intake Arm Move
+      spinMotor.set(xbox.getLeftY()*.5);
    } else  { //Intake Arm Stop
       spinMotor.set(0);
    } 
 
   // Winch Motors Control
-    if(xbox.getRawButton(3)) { //Winch Retract
+    if(xbox.getAButton()) { //Winch Retract
       winchMotor.set(-1);
-    } else if(xbox.getRawButton(2)) { //Winch Extend
+    } else if(xbox.getBButton()) { //Winch Extend
       winchMotor.set(1);
     }  else {
       winchMotor.set(0.0);  
     }
 
   // Pickup Motor Control
-    if(rightstick.getRawButton(1)) { //Spins Ball In
+    if(leftstick.getRawButton(1)) { //Spits Ball Out
       pickupMotor.set(-1);
-    } else if(leftstick.getRawButton(1)) { //Spits Ball Out
+    } else if(rightstick.getRawButton(1)) { //Spins Ball in
       pickupMotor.set(1);
     } else {
       pickupMotor.set(0.0);  
     }
 
   // Flapper Motor Control
-    if(rightstick.getRawButton(3)) { //Open Flapper
+    if(leftstick.getRawButton(2)) { //Closes Flapper
       flapperMotor.set(0.4);
-    } else if(rightstick.getRawButton(2)) { //Closes Flapper
+    } else if(rightstick.getRawButton(2)) { //Opens Flapper
       flapperMotor.set(-0.4);
     } else {
       flapperMotor.set(0.0);  
     }
 
   // Pneumatics Control
-    if(xbox.getRawButton(9)) { //Launcher Lock
+    if(xbox.getStartButton()) { //Launcher Lock
       solenoid.set(DoubleSolenoid.Value.kForward);
-    } else if(xbox.getRawButton(10)) { //Launcher Unlocked
+    } else if(xbox.getBackButton()) { //Launcher Unlocked
       solenoid.set(DoubleSolenoid.Value.kReverse);
    }
 
