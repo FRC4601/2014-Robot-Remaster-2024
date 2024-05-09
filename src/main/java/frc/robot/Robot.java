@@ -6,14 +6,13 @@
 
 package frc.robot;
 
-//import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.PWMVictorSPX;
 
 /**
@@ -38,20 +37,17 @@ public class Robot extends TimedRobot {
    private final PWMVictorSPX pickupMotor = new PWMVictorSPX(7);
    private final PWMVictorSPX flapperMotor = new PWMVictorSPX(8);
 
-   // Speed Controller Groups
-   private final MotorControllerGroup leftSpeedGroup = new MotorControllerGroup(frontleftMotor, backleftMotor);
-   private final MotorControllerGroup rightSpeedGroup = new MotorControllerGroup(frontrightMotor, backrightMotor);
-
    //drivetrain 
-   DifferentialDrive drivetrain = new DifferentialDrive(leftSpeedGroup, rightSpeedGroup);
+   private DifferentialDrive m_drive;
 
    //Controls
    private final Joystick rightstick = new Joystick(0);
    private final Joystick leftstick = new Joystick(1);
    private final XboxController xbox = new XboxController(2);
 
+   private final Timer autoTimer = new Timer();
+
    //Pneumatics
-   //private final Compressor Kyle = new Compressor(0, PneumaticsModuleType.CTREPCM);
    private final DoubleSolenoid solenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
    
 
@@ -60,7 +56,10 @@ public class Robot extends TimedRobot {
 
     frontleftMotor.setInverted(true);
     backleftMotor.setInverted(true);
-    
+    frontleftMotor.addFollower(backleftMotor);
+    frontrightMotor.addFollower(backrightMotor);
+    m_drive = new DifferentialDrive(frontleftMotor, frontrightMotor);
+
   }
 
   @Override
@@ -75,15 +74,13 @@ public class Robot extends TimedRobot {
   @Override
   public void teleopInit() {
 
-  //  Kyle.enableDigital();
-  //  Kyle.disable();
   }
 
   @Override
   public void teleopPeriodic() {
 
   // Tank drive with a given left and right rates
-    drivetrain.tankDrive(leftstick.getY(), rightstick.getY());
+    m_drive.tankDrive(leftstick.getY(), rightstick.getY());
 
   // Spin Motors Control
     if(xbox.getRawAxis(3) >=0.01 || xbox.getRawAxis(3) <=-0.01) { //Intake Arm Move
