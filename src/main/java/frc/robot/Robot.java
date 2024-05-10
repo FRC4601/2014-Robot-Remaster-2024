@@ -30,6 +30,7 @@ public class Robot extends TimedRobot {
    * initialization code.
    */
 
+  //Auto Chooser
   private static final String NoAutoSelected = "No Auto Selected";
   private String m_autoSelected;
   private final SendableChooser<String> m_chooser = new SendableChooser<>();
@@ -44,7 +45,7 @@ public class Robot extends TimedRobot {
    private final PWMVictorSPX pickupMotor = new PWMVictorSPX(7);
    private final PWMVictorSPX flapperMotor = new PWMVictorSPX(8);
 
-   //drivetrain 
+   //Drivetrain 
    private DifferentialDrive m_drive;
 
    //Controls
@@ -52,7 +53,9 @@ public class Robot extends TimedRobot {
    private final Joystick leftstick = new Joystick(1);
    private final XboxController xbox = new XboxController(2);
 
+   //Timers
    private final Timer autoTimer = new Timer();
+   private final Timer teleTimer = new Timer();
 
    //Pneumatics
    private final DoubleSolenoid solenoid = new DoubleSolenoid(PneumaticsModuleType.CTREPCM, 0, 1);
@@ -60,12 +63,15 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotInit() {
+    
+    //Auto Chooser
     m_chooser.setDefaultOption(NoAutoSelected, NoAutoSelected);
     SmartDashboard.putData("Auto Chooser", m_chooser);
+    
     //Camera
     CameraServer.startAutomaticCapture();
 
-    //Drive
+    //Drivetrain
     frontleftMotor.setInverted(true);
     frontleftMotor.addFollower(backleftMotor);
     frontrightMotor.addFollower(backrightMotor);
@@ -78,9 +84,12 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {
+    
+    //Auto Chooser
     m_autoSelected = m_chooser.getSelected();
     System.out.println("Auto selected: " + m_autoSelected);
 
+    //Auto Timer
     autoTimer.reset();
     autoTimer.start();
   }
@@ -90,8 +99,14 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopInit() {
+    
+    //Auto Timer
     autoTimer.stop();
     autoTimer.reset();
+    
+    //Tele Timer
+    teleTimer.reset();
+    teleTimer.start();
   }
 
   @Override
@@ -110,31 +125,31 @@ public class Robot extends TimedRobot {
   // Winch Motors Control
     if(xbox.getAButton()) { //Winch Retract
       winchMotor.set(-1);
-    } else if(xbox.getBButton()) { //Winch Extend
+    } else if(xbox.getBButton()) { //Winch Release
       winchMotor.set(1);
     }  else {
       winchMotor.set(0.0);  
     }
 
-  // Pickup Motor Control
-    if(leftstick.getRawButton(1)) { //Spits Ball Out
+  // Intake Motor Control
+    if(leftstick.getRawButton(1)) { //Spits Ball Out - Trigger on left Joystick
       pickupMotor.set(-1);
-    } else if(rightstick.getRawButton(1)) { //Spins Ball in
+    } else if(rightstick.getRawButton(1)) { //Ejects Ball in - Trigger on right Joystick
       pickupMotor.set(1);
     } else {
       pickupMotor.set(0.0);  
     }
 
   // Flapper Motor Control
-    if(leftstick.getRawButton(2)) { //Closes Flapper
+    if(leftstick.getRawButton(2)) { //Closes Flapper - Middle Button on left Joystick
       flapperMotor.set(0.4);
-    } else if(rightstick.getRawButton(2)) { //Opens Flapper
+    } else if(rightstick.getRawButton(2)) { //Opens Flapper - Middle Button on right Joystick
       flapperMotor.set(-0.4);
     } else {
       flapperMotor.set(0.0);  
     }
 
-  // Pneumatics Control
+  // Lock's Pneumatics Control
     if(xbox.getStartButton()) { //Launcher Lock
       solenoid.set(DoubleSolenoid.Value.kForward);
     } else if(xbox.getBackButton()) { //Launcher Unlocked
