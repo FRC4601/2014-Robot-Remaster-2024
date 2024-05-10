@@ -49,8 +49,8 @@ public class Robot extends TimedRobot {
    private DifferentialDrive m_drive;
 
    //Controls
-   private final Joystick rightstick = new Joystick(0);
-   private final Joystick leftstick = new Joystick(1);
+   private final Joystick rightstick = new Joystick(1);
+   private final Joystick leftstick = new Joystick(0);
    private final XboxController xbox = new XboxController(2);
 
    //Timers
@@ -132,18 +132,18 @@ public class Robot extends TimedRobot {
     }
 
   // Intake Motor Control
-    if(leftstick.getRawButton(1)) { //Spits Ball Out - Trigger on left Joystick
+    if(rightstick.getRawButton(1)) { //Spits Ball Out - Trigger on right Joystick
       pickupMotor.set(-1);
-    } else if(rightstick.getRawButton(1)) { //Ejects Ball in - Trigger on right Joystick
+    } else if(leftstick.getRawButton(1)) { //Ejects Ball in - Trigger on left Joystick
       pickupMotor.set(1);
     } else {
       pickupMotor.set(0.0);  
     }
 
   // Flapper Motor Control
-    if(leftstick.getRawButton(2)) { //Closes Flapper - Middle Button on left Joystick
+    if(leftstick.getRawButton(2)) { //Open Flapper - Middle Button on left Joystick
       flapperMotor.set(0.4);
-    } else if(rightstick.getRawButton(2)) { //Opens Flapper - Middle Button on right Joystick
+    } else if(rightstick.getRawButton(2)) { //Closes Flapper - Middle Button on right Joystick
       flapperMotor.set(-0.4);
     } else {
       flapperMotor.set(0.0);  
